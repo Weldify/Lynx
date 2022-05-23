@@ -1,0 +1,13 @@
+{
+  "name": "Lynx",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Lynx": {
+        "$path": "src"
+      }
+    }
+  }
+}

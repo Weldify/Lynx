@@ -1,0 +1,13 @@
+<roblox version="4">
+  <Item class="ReplicatedStorage" referent="0">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="ModuleScript" referent="1">
+      <Properties>
+        <string name="Name">Lynx</string>
+        <string name="Source"></string>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
