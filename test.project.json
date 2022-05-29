@@ -1,0 +1,16 @@
+{
+  "name": "Lynx",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Packages": {
+        "$className": "Folder",
+
+        "lynx": {
+          "$path": "src"
+        }
+      }
+    }
+  }
+}
