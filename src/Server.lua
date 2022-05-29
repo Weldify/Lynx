@@ -22,8 +22,17 @@ local requestMeta = {}
 local commandMeta = {}
 local everyone = "__Lynx_Everyone"
 
+local Lynx = {}
+
 local function Punish(plr, reason)
-    print("punish "..plr.." because "..reason)
+    if Lynx.Punish == nil then
+        warn(("Punishment dropped for player %s because the Punish callback was not set. Specified reason: %s"):format(plr.Name, reason))
+        return
+    end
+
+    assert(typeof(Lynx.Punish) == "function", "Lynx.Punish must be a function")
+    
+    Lynx.Punish(plr, reason)
 end
 
 remote.OnServerEvent:Connect(function(plr, sysName, reqName, ...)
@@ -185,20 +194,20 @@ local function Run()
     end
 end
 
-return {
-    Number = 0;
-    String = "";
-    Boolean = true;
+Lynx.Number = 0
+Lynx.String = ""
+Lynx.Boolean = true
 
-    Create = Create;
-    Get = Get;
+Lynx.Create = Create
+Lynx.Get = Get
 
-    Everyone = everyone;
+Lynx.Everyone = everyone
 
-    Request = Request;
-    Command = Command;
+Lynx.Request = Request
+Lynx.Command = Command
 
-    AddFolder = AddFolder;
+Lynx.AddFolder = AddFolder
 
-    Run = Run;
-}
+Lynx.Run = Run
+
+return Lynx
