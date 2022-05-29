@@ -14,13 +14,76 @@ end
 local sysTables = {}
 local systems = {}
 
+remote.OnClientEvent:Connect(function(sysName, cmdName, ...)
+    sysTables[sysName][cmdName]:_Send(...)
+end)
+
+local Hook = {}
+Hook.__index = Hook
+
+function Hook:Unhook()
+    if not self.Hooked then return end
+    self.Hooked = false
+
+    if self._Cmd._LastHook == self then
+		self._Cmd._LastHook = self._Next
+	else
+		local prev = self._Cmd._LastHook
+		while prev and prev._Next ~= self do
+			prev = prev._Next
+		end
+		if prev then
+			prev._Next = self._Next
+		end
+	end
+end
+
+local function CreateHook(cmd, fn)
+    return setmetatable({
+        Hooked = true;
+        _Cmd = cmd;
+        _Fn = fn;
+        _Next = nil;
+    }, Hook)
+end
+
+local Command = {}
+Command.__index = Command
+
+function Command:Hook(fn)
+    local hook = CreateHook(self, fn)
+
+    if self._LastHook then
+        hook._Next = self._LastHook
+        self._LastHook = hook
+    else
+        self._LastHook = hook
+    end
+
+    return hook
+end
+
+function Command:_Send(...)
+    local hook = self._LastHook
+    while hook do
+        task.spawn(hook._Fn, ...)
+        hook = hook._Next
+    end
+end
+
+local function CreateCommand()
+    return setmetatable({
+        _LastHook = nil
+    }, Command)
+end
+
 local function BuildServerSystem(folder: Folder)
     local sys = {
         Name = folder.Name
     }
 
-    for k, v in folder:GetAttributes() do
-        local data = HttpService:JSONDecode(v)
+    for k, attr in folder:GetAttributes() do
+        local data = HttpService:JSONDecode(attr)
         local args = data[2]
 
         if data[1] == repTypes.Request then
@@ -45,8 +108,12 @@ local function BuildServerSystem(folder: Folder)
 
                 remote:FireServer(folder.Name, k, ...)
             end
+        elseif data[1] == repTypes.Command then
+            sys[k] = CreateCommand()
         end
     end
+
+    sysTables[folder.Name] = sys
 
     return sys
 end
@@ -97,8 +164,9 @@ local function AddFolder(folder)
 end
 
 local function Run()
-    for i in sysTables do
-        assert(systems[i] ~= nil, ("System %s is never defined"):format(i))
+    for k in sysTables do
+        if systemsFolder:FindFirstChild(k) then continue end
+        assert(systems[k] ~= nil, ("System %s is never defined"):format(k))
     end
 
     for _, v in systems do

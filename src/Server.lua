@@ -19,6 +19,8 @@ local sysTables = {}
 local systems = {}
 
 local requestMeta = {}
+local commandMeta = {}
+local everyone = "__Lynx_Everyone"
 
 local function Punish(plr, reason)
     print("punish "..plr.." because "..reason)
@@ -80,6 +82,10 @@ local function Request(...)
     }, requestMeta)
 end
 
+local function Command()
+    return setmetatable({}, commandMeta)
+end
+
 local function GetReservedTable(name)
     local sysTable = sysTables[name]
     if sysTable then return sysTable end
@@ -98,7 +104,8 @@ local function Create(data)
     assert(typeof(data.Name) == "string", "System name must be a string")
     assert(systems[data.Name] == nil, ("System %s already exists"):format(data.Name))
 
-    local system = GetReservedTable(data.Name)
+    local sysName = data.Name
+    local system = GetReservedTable(sysName)
     
     for k, v in data do
         system[k] = v
@@ -114,6 +121,18 @@ local function Create(data)
             replicated = true
             
             repAttributes[k] = {repTypes.Request, v.Args}
+        elseif meta == commandMeta then
+            replicated = true
+
+            repAttributes[k] = {repTypes.Command}
+
+            system[k] = function(_, plr, ...)
+                if plr == everyone then
+                    remote:FireAllClients(sysName, k, ...)
+                else
+                    remote:FireClient(plr, sysName, k, ...)
+                end
+            end
         end
     end
 
@@ -174,7 +193,10 @@ return {
     Create = Create;
     Get = Get;
 
+    Everyone = everyone;
+
     Request = Request;
+    Command = Command;
 
     AddFolder = AddFolder;
 
